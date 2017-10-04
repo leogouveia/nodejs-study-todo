@@ -138,6 +138,7 @@ describe('PATCH /todos/:id', () => {
                 expect(res.body.todo._id).toBe(id)
                 expect(res.body.todo.completed).toBeTruthy()
                 expect(res.body.todo.completedAt).toBeTruthy()
+                expect(typeof res.body.todo.completedAt).toBe('number')
             })
             .end((err, res) => {
                 if (err) 
@@ -161,7 +162,7 @@ describe('PATCH /todos/:id', () => {
             .send(updatedTodo)
             .expect(200)
             .expect((res) => {
-                expect(res.body.todo.completedAt).toBeNull()
+                expect(res.body.todo.completedAt).toBeFalsy()
                 expect(res.body.todo.completed).toBeFalsy()
                 expect(res.body.todo._id).toBe(id)
                 expect(res.body.todo.text).toBe(updatedTodo.text)
@@ -202,16 +203,16 @@ describe('POST /users', () => {
             .send({email, password})
             .expect(200)
             .expect((res) => {
-                expect(res.headers['x-auth']).toBeDefined()
-                expect(res.body._id).toBeDefined()
-                expect(res.body.email).toBeDefined()
+                expect(res.headers['x-auth']).toBeTruthy()
+                expect(res.body._id).toBeTruthy()
+                expect(res.body.email).toBe(email)
             })
             .end((err) => {
                 if (err)
                     return done(err)
                 
                 User.findOne({email}).then((user) => {
-                    expect(user).toBeDefined()
+                    expect(user).toBeTruthy()
                     expect(user.password).not.toBe(password)
                     done()
                 })
@@ -226,8 +227,8 @@ describe('POST /users', () => {
             .send({invalidEmail,password})
             .expect(400)
             .expect((res) => {
-                expect(res.body.errors.email).toBeDefined()
-                expect(res.body.errors.password).toBeDefined()
+                expect(res.body.errors.email).toBeTruthy()
+                expect(res.body.errors.password).toBeTruthy()
 
             })
             .end(done)
@@ -241,7 +242,7 @@ describe('POST /users', () => {
             .send({invalidEmail,password})
             .expect(400)
             .expect((res) => {
-                expect(res.body.errors.email).toBeDefined()
+                expect(res.body.errors.email).toBeTruthy()
             })
             .end(done)
     })
@@ -255,7 +256,7 @@ describe('POST /users/login', () => {
             .send({email, password})
             .expect(200)
             .expect((res) => {
-                expect(res.headers['x-auth']).toBeDefined()
+                expect(res.headers['x-auth']).toBeTruthy()
                 expect(res.body.email).toEqual(email)
             })
             .end((err, res) => {
@@ -264,9 +265,13 @@ describe('POST /users/login', () => {
                     
                 User.findByToken(res.headers['x-auth']).then((user) => {
                     expect(user.email).toEqual(email)
+                    expect(user.toObject().tokens[1]).toMatchObject({
+                        access: 'auth',
+                        token: res.headers['x-auth']
+                    })
                 }).then(() => {
                     return User.findOne({email: email}).then((user) => {
-                        expect(user).toBeDefined()
+                        expect(user).toBeTruthy()
                         expect(user).not.toBeNull()
                         expect(user.password).not.toBe(password)
                         done()
@@ -284,8 +289,8 @@ describe('POST /users/login', () => {
             .send({email, password})
             .expect(401)
             .expect((res) => {
-                expect(res.headers['x-auth']).not.toBeDefined()
-                expect(res.body.email).not.toBeDefined()
+                expect(res.headers['x-auth']).toBeFalsy()
+                expect(res.body.email).toBeFalsy()
             })
             .end(done)
     })
@@ -302,7 +307,7 @@ describe('DELETE /users/me', () => {
                 if (err)
                     return done(err)
                 User.findOne({email}).then((user) => {
-                    expect(user).toBeDefined()
+                    expect(user).toBeTruthy()
                     expect(user).not.toBeNull()
                     expect(user.tokens.length).toEqual(0)
                     done()
