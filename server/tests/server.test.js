@@ -193,7 +193,6 @@ describe('GET /users/me', () => {
             .end(done)
     })
 })
-
 describe('POST /users', () => {
     it('should create a user', (done) => {
         var email = 'example@example.com'
@@ -247,7 +246,6 @@ describe('POST /users', () => {
             .end(done)
     })
 })
-
 describe('POST /users/login', () => {
     it('should login user and return auth token', (done) => {
         var email = users[1].email
@@ -292,7 +290,6 @@ describe('POST /users/login', () => {
             .end(done)
     })
 })
-
 describe('DELETE /users/me', () => {
     it('should logout user removing token', (done) => {
         var email = users[0].email
